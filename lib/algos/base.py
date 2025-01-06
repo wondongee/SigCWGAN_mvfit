@@ -18,6 +18,7 @@ class BaseConfig:
     device: str = 'cpu'
     p: int = 3
     q: int = 3
+    gen_len: int = 128
     hidden_dims: Tuple[int] = 3 * (50,)
     total_steps: int = 1000
     mc_samples: int = 1000

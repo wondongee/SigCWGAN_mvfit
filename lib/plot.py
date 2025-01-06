@@ -141,15 +141,11 @@ def savefig(filename, directory):
     plt.close()
 
 
-def create_summary(dataset, device, G, lags_past, steps, x_real, one=False):
+def create_summary(dataset, device, G, lags_past, steps, x_real):
     with torch.no_grad():
         x_past = x_real[:, :lags_past]
         if dataset in ['STOCKS', 'ECG']:
-            x_p = x_past.clone().repeat(5, 1, 1)
-        else:
-            x_p = x_past.clone()
-        if one:
-            x_p = x_p[:1]
+            x_p = x_past.clone().repeat(3, 1, 1)
         x_fake_future = G.sample(steps, x_p.to(device))
         plot_summary(x_fake=x_fake_future, x_real=x_real, max_lag=3)
     return x_fake_future

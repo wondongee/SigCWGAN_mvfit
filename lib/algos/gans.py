@@ -135,20 +135,13 @@ class GAN(BaseAlgo):
             # generate x_fake
             indices = sample_indices(self.x_real.shape[0], self.batch_size)
             x_past = self.x_real[indices, :self.p].clone().to(self.device)
-            with torch.no_grad():
-                if self.gan_algo == 'CWGAN':
-                    x_past = x_past.clone().repeat(self.base_config.mc_samples, 1, 1)
-                    x_fake = self.G.sample(self.q, x_past)
-                    #x_fake = x_fake.reshape(self.base_config.mc_samples, x_past.shape[0], self.q, -1).mean(0)
-                else:
-                    x_fake = self.G.sample(self.q, x_past.clone())
+            with torch.no_grad():                
+                x_fake = self.G.sample(self.q, x_past.clone())
                 x_fake = torch.cat([x_past, x_fake], dim=1)
             D_loss_real, D_loss_fake, reg = self.trainer.D_trainstep(x_fake, self.x_real[indices].to(self.device))
             if i == 0:
                 self.training_loss['D_loss_fake'].append(D_loss_fake)
                 self.training_loss['D_loss_real'].append(D_loss_real)
-                if self.gan_algo in ['RCWGAN', 'CWGAN']:
-                    self.training_loss['{}_reg'.format(self.gan_algo)].append(reg)
         # Generator step
         indices = sample_indices(self.x_real.shape[0], self.batch_size)
         x_past = self.x_real[indices, :self.p].clone().to(self.device)
@@ -160,21 +153,6 @@ class GAN(BaseAlgo):
         self.evaluate(x_fake)
 
 
-class RCGAN(GAN,):
-    def __init__(self, base_config, x_real):
-        super(RCGAN, self).__init__(base_config, 'RCGAN', x_real)
-
-
 class TimeGAN(GAN, ):
     def __init__(self, base_config, x_real):
         super(TimeGAN, self).__init__(base_config, 'TimeGAN', x_real)
-
-
-class RCWGAN(GAN, ):
-    def __init__(self, base_config, x_real):
-        super(RCWGAN, self).__init__(base_config, 'RCWGAN', x_real)
-
-
-class CWGAN(GAN, ):
-    def __init__(self, base_config, x_real):
-        super(CWGAN, self).__init__(base_config, 'CWGAN', x_real)
